@@ -1,0 +1,34 @@
+version: "3.3"
+networks:
+  ros:
+    driver: bridge
+
+services:
+  ros-master:
+    image: ros:noetic
+    command: stdbuf -o L roscore
+    networks:
+      - ros
+    restart: always
+    
+  talker:
+    image: ros:noetic
+    depends_on:
+      - ros-master
+    environment:
+      - "ROS_MASTER_URI=http://ros-master:11311"
+    networks:
+      - ros
+    command: stdbuf -o L rostopic pub /chatter std_msgs/String "hello" -r 1
+    restart: always
+
+  listener:
+    image: ros:noetic
+    depends_on:
+        - ros-master
+    environment:
+      - "ROS_MASTER_URI=http://ros-master:11311"
+    command: stdbuf -o L rostopic echo /chatter
+    networks:
+      - ros
+    restart: always
